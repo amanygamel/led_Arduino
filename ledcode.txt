@@ -1,0 +1,137 @@
+#include <ESP8266WebServer.h>
+#include <ESP8266WiFi.h>
+#define redLED D3
+#define greenLED D2
+#define blueLED D1
+const char *ssid="Team17NodeMcu";
+const char *password="team17123";
+bool LEDState =LOW;
+bool LEDState1 =LOW;
+bool LEDState2 =LOW;
+ESP8266WebServer server (80);
+void setup ()
+{
+ Serial.begin (115200);
+ pinMode (redLED ,OUTPUT );
+  pinMode (greenLED ,OUTPUT );
+   pinMode (blueLED ,OUTPUT );
+ WiFi.softAP (ssid,password);    
+ IPAddress IP=WiFi.softAPIP();
+ Serial.print ("AP IP address: ");
+ Serial.println (IP);
+ server.on("/", handleOnConnect);
+ server.on("/on1", handleOn1);
+ server.on("/off1", handleoff1);
+ server.on("/on2", handleOn2);
+ server.on("/off2", handleoff2);
+ server.on("/on3", handleOn3);
+ server.on("/off3", handleoff3);
+
+ server.begin ();
+Serial.println ("HTTP server started");
+
+}
+void loop (){
+  server.handleClient();
+  if(LEDState)
+  {digitalWrite(redLED, HIGH);}
+  else
+  {digitalWrite(redLED, LOW);}
+  
+  if(LEDState1)
+  {digitalWrite(greenLED, HIGH);}
+  else
+  {digitalWrite(greenLED, LOW);}
+   if(LEDState2)
+  {digitalWrite(blueLED, HIGH);}
+  else
+  {digitalWrite(blueLED, LOW);}
+  
+  
+}
+
+  void handleOnConnect(){
+    LEDState=LOW;
+     LEDState1=LOW;
+      LEDState2=LOW;
+    Serial.println("LED Status:OFF");
+    server.send(200,"text/html", SendHTML(LEDState,LEDState1,LEDState2));
+ 
+
+  }
+    void handleoff1 (){
+      LEDState=LOW;
+     
+      Serial.println("LED Status:OFF");
+      server.send(200,"text/html",SendHTML(false,LEDState1,LEDState2));
+
+    }
+    void handleoff2 (){
+      LEDState1=LOW;
+     
+      Serial.println("LED Status:OFF");
+      server.send(200,"text/html",SendHTML(LEDState,false,LEDState2));
+    }
+    void handleoff3 (){
+      LEDState2=LOW;
+      Serial.println("LED Status:OFF");
+      server.send(200,"text/html",SendHTML(LEDState,LEDState1,false));
+
+    }
+    
+    void handleOn1 (){
+       LEDState= HIGH;;
+      
+        Serial.println("LED Status:ON");
+       server.send(200,"text/html",SendHTML(true,LEDState1,LEDState2));
+
+      }
+      void handleOn2 (){
+       LEDState1= HIGH;
+        Serial.println("LED Status:ON");
+       server.send(200,"text/html",SendHTML(LEDState,true,LEDState2));
+
+      }
+      void handleOn3 (){
+      LEDState2= HIGH;
+        Serial.println("LED Status:ON");
+       server.send(200,"text/html",SendHTML(LEDState,LEDState1,true));
+
+      }
+ 
+String SendHTML(uint8_t state,uint8_t state1,uint8_t state2) {
+  String ptr = "<!DOCTYPE html> <html>\n";
+  ptr +="<head><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0, user-scalable=no\">\n";
+  ptr +="<title>LED Control</title>\n";
+  ptr +="<style>html { font-family: Helvetica; display: inline-block; margin: 0px auto; text-align: center;}\n";
+  ptr +="body{margin-top: 50px;} h1 {color: #444444;margin: 50px auto 30px;} h3 {color: #444444;margin-bottom: 50px;}\n";
+  ptr +=".button {display: block;width: 200px;background-color: #1abc9c;border: none;color: white;padding: 13px 30px;text-decoration: none;font-size: 25px;margin: 0px auto 35px;cursor: pointer;border-radius: 4px;}\n";
+  ptr +=".button-on {background-color: pink;}\n";
+  ptr +=".button-on:active {background-color: #16a085;}\n";
+  ptr +=".button-off {background-color: pink;}\n";
+  ptr +=".button-off:active {background-color: #2c3e50;}\n";
+  ptr +="p {font-size: 14px;color: #888;margin-bottom: 10px;}\n";
+  ptr +="</style>\n";
+  ptr +="</head>\n";
+  ptr +="<body>\n";
+  ptr +="<h1>Smart Home </h1>\n";
+    ptr +="<h3>control your chambre lamp</h3>\n";
+  
+   if(LEDState)
+  {ptr +="<p>LED1 Status: ON</p><a class=\"button button-off\" href=\"/off1\">RedLampOff</a>\n";}
+  else
+  {ptr +="<p>LED1 Status: OFF</p><a class=\"button button-on\" href=\"/on1\">RedLampOn</a>\n";}
+
+  if(LEDState1)
+  {ptr +="<p>LED2 Status: ON</p><a class=\"button button-off\" href=\"/off2\">GreenLampOff</a>\n";}
+  else
+  {ptr +="<p>LED2 Status: OFF</p><a class=\"button button-on\" href=\"/on2\">GreenLampON</a>\n";}
+  if(LEDState2)
+  {ptr +="<p>LED3 Status: ON</p><a class=\"button button-off\" href=\"/off3\">BlueLampOFF</a>\n";}
+  else
+  {ptr +="<p>LED3 Status: OFF</p><a class=\"button button-on\" href=\"/on3\">BlueLampOn</a>\n";}
+
+  ptr +="</body>\n";
+  ptr +="</html>\n";
+  return ptr;
+}
